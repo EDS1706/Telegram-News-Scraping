@@ -40,9 +40,9 @@ open main.py:
 
 ```python
 def main():
-    get_news()
-    #print(check_update())
+    #get_news()
+    print(check_update())
 ```
-Initially, you will not have a json file from where the bot takes information. Function get_news() can help you in building. After creation news_dict.json you can comment out the get_new() function and uncomment check_update() function
+check_update() can update your news_dict.json file and add new news 
 
 After all this. You can run bot.py and let's test
