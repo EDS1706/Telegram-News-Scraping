@@ -45,4 +45,4 @@ def main():
 ```
 check_update() can update your news_dict.json file and add new news 
 
-After all this. You can run bot.py and let's test
+After all this. You can run bot.py and let's test. Send bot /start
