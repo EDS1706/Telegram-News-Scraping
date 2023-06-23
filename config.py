@@ -1,4 +1,4 @@
-TOKEN = "your bot token" 
+TOKEN = "your token bot" 
 
 #Получить user id можно из бота @userinfobot
-user_id = "Your user id"
+user_id = your id 

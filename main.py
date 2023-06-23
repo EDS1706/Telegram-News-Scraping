@@ -5,13 +5,9 @@ import time
 import json
 
 def get_news():
-    headers = {
-        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
-    }
-
     url = "https://www.playground.ru/misc/news"
     
-    req = requests.get(url=url, headers=headers)
+    req = requests.get(url=url)
     soup = BeautifulSoup(req.text, "lxml")
 
     article_cards = soup.find_all("div", class_="post-content")
@@ -43,14 +39,10 @@ def get_news():
 def check_update():
     with open("news_dict.json") as file:
        news_dict = json.load(file)       
-      
-    headers = {
-        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
-    }
 
     url = "https://www.playground.ru/misc/news"
     
-    req = requests.get(url=url, headers=headers)
+    req = requests.get(url=url)
     soup = BeautifulSoup(req.text, "lxml")
 
     article_cards = soup.find_all("div", class_="post-content")
