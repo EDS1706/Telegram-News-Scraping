@@ -1,2 +1,4 @@
-TOKEN = "7242222829:AAGGnsKktRrNGR-lC05xN_ciXyAy89MKcHw"
-user_id = "1600252031"  # מרכאות מסביב למספר!
+import os
+
+TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+user_id = os.getenv("TELEGRAM_CHAT_ID")
