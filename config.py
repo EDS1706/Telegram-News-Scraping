@@ -1,4 +1,4 @@
 import os
 
-TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-user_id = os.getenv("TELEGRAM_CHAT_ID")
+TOKEN = os.getenv("TOKEN")  # ב-Render זה נקרא "TOKEN"
+user_id = os.getenv("user_id")  # ב-Render זה נקרא "user_id"
