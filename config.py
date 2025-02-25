@@ -1,4 +1,3 @@
-TOKEN = "your token bot" 
+TOKEN = "7242222829:AAGGnsKktRrNGR-lC05xN_ciXyAy89MKcHw" 
 
-#Получить user id можно из бота @userinfobot
-user_id = your id 
+user_id = 1600252031 
