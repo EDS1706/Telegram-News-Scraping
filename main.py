@@ -29,59 +29,42 @@ HEADERS = {
 }
 
 def get_news():
-    """איסוף חדשות מכל האתרים ושמירתם בקובץ JSON"""
-    try:
-        with open("news_dict.json", "r") as file:
-            news_dict = json.load(file)
-    except (FileNotFoundError, json.JSONDecodeError):
-        news_dict = {}
-
-    new_articles = {}
+    news_dict = {}
 
     for base_url, path in NEWS_SITES.items():
         url = base_url + path
-        try:
-            req = requests.get(url, headers=HEADERS)
-            req.raise_for_status()
-            soup = BeautifulSoup(req.text, "lxml")
+        req = requests.get(url)
+        soup = BeautifulSoup(req.text, "lxml")
 
-            # חיפוש כותרות
-            articles = soup.find_all("h2")
-            for article in articles:
-                title_article = article.text.strip()
-                url_article = article.find("a")
-                
-                if url_article:
-                    url_article = url_article.get("href")
+        print(f"🔹 URL: {url}")  # הדפסת הקישור שאנחנו מושכים ממנו
+        print(f"🔹 HTML תוכן האתר:\n{soup.prettify()}")  # הדפסת כל תוכן ה-HTML
 
-                    # השלמת קישור אם הוא יחסי
-                    if url_article.startswith("/"):
-                        url_article = base_url + url_article
+        articles = soup.find_all("h2")  # בדוק אם מוצאים h2
 
-                    # בדיקה אם הכותרת כוללת מילת מפתח
-                    if any(keyword in title_article for keyword in KEYWORDS):
-                        article_id = url_article.split("/")[-1]
-                        article_date_timestamp = time.time()
+        print(f"🔹 נמצאו {len(articles)} תגיות H2 באתר {base_url}")  # כמה h2 מצאנו
 
-                        if article_id not in news_dict:
-                            news_dict[article_id] = {
-                                "article_date_timestamp": article_date_timestamp,
-                                "title_article": title_article,
-                                "url_article": url_article,
-                            }
-                            new_articles[article_id] = news_dict[article_id]
-                            print(news_dict)  # הדפס את הכתבות שנמצאו
+        for article in articles:
+            title_article = article.text.strip()
+            url_article = article.find("a")
+            if url_article:
+                url_article = url_article.get("href")
 
+                # השלמת קישור אם הוא יחסי
+                if url_article.startswith("/"):
+                    url_article = base_url + url_article
 
-        except requests.RequestException as e:
-            print(f"שגיאה בגישה לאתר {base_url}: {e}")
+                if any(keyword in title_article for keyword in KEYWORDS):
+                    article_id = url_article.split("/")[-1]
+                    article_date_timestamp = time.time()
 
-    # שמירה לקובץ JSON
+                    news_dict[article_id] = {
+                        "article_date_timestamp": article_date_timestamp,
+                        "title_article": title_article,
+                        "url_article": url_article,
+                    }
+
     with open("news_dict.json", "w") as file:
         json.dump(news_dict, file, indent=4, ensure_ascii=False)
-
-    print(f"נמצאו {len(new_articles)} כתבות חדשות.")
-    return new_articles
 
 def check_update():
     """בודק אם נוספו חדשות חדשות שלא היו בקובץ JSON"""
