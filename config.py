@@ -1,2 +1,2 @@
 TOKEN = "7242222829:AAGGnsKktRrNGR-lC05xN_ciXyAy89MKcHw"
-user_id = 1600252031  # זה חייב להיות מספר בלבד
+user_id = "1600252031"  # זה חייב להיות מספר בלבד
