@@ -33,38 +33,52 @@ def get_news():
 
     for base_url, path in NEWS_SITES.items():
         url = base_url + path
-        req = requests.get(url)
+        print(f"\n🔎 בודק אתר: {url}")
+
+        try:
+            req = requests.get(url)
+            req.raise_for_status()
+        except requests.RequestException as e:
+            print(f"❌ שגיאה בטעינת האתר {url}: {e}")
+            continue
+
         soup = BeautifulSoup(req.text, "lxml")
 
-        print(f"🔹 URL: {url}")  # הדפסת הקישור שאנחנו מושכים ממנו
-        print(f"🔹 HTML תוכן האתר:\n{soup.prettify()}")  # הדפסת כל תוכן ה-HTML
-
-        articles = soup.find_all("h2")  # בדוק אם מוצאים h2
-
-        print(f"🔹 נמצאו {len(articles)} תגיות H2 באתר {base_url}")  # כמה h2 מצאנו
+        articles = soup.find_all("h2")
+        print(f"📰 מספר כתבות שנמצאו ב-{base_url}: {len(articles)}")
 
         for article in articles:
             title_article = article.text.strip()
             url_article = article.find("a")
+
             if url_article:
                 url_article = url_article.get("href")
 
                 # השלמת קישור אם הוא יחסי
-                if url_article.startswith("/"):
+                if url_article and url_article.startswith("/"):
                     url_article = base_url + url_article
 
-                if any(keyword in title_article for keyword in KEYWORDS):
+                print(f"🔗 כתבה: {title_article}")
+                print(f"🔗 קישור: {url_article}")
+
+                # בדיקה אם הכתבה מכילה מילת מפתח
+                if any(keyword.lower() in title_article.lower() for keyword in KEYWORDS):
                     article_id = url_article.split("/")[-1]
                     article_date_timestamp = time.time()
 
-                    news_dict[article_id] = {
-                        "article_date_timestamp": article_date_timestamp,
-                        "title_article": title_article,
-                        "url_article": url_article,
-                    }
+                    if article_id not in news_dict:
+                        news_dict[article_id] = {
+                            "article_date_timestamp": article_date_timestamp,
+                            "title_article": title_article,
+                            "url_article": url_article,
+                        }
+
+                        print(f"✅ כתבה מתאימה נמצאה! {title_article}")
 
     with open("news_dict.json", "w") as file:
         json.dump(news_dict, file, indent=4, ensure_ascii=False)
+
+    print(f"\n📁 שמרנו {len(news_dict)} כתבות ב-news_dict.json")
 
 def check_update():
     """בודק אם נוספו חדשות חדשות שלא היו בקובץ JSON"""
