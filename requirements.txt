@@ -18,3 +18,7 @@ requests==2.31.0
 soupsieve==2.4.1
 urllib3==2.0.3
 yarl==1.9.2
+requests
+beautifulsoup4
+playwright
+python-dotenv
