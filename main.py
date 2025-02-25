@@ -4,88 +4,106 @@ from datetime import datetime
 import time
 import json
 
+# רשימת אתרי החדשות למעקב
+NEWS_SITES = [
+    {"name": "Ynet", "url": "https://www.ynet.co.il/home/0,7340,L-8,00.html", "selector": "a.slotTitle"},
+    {"name": "TheMarker", "url": "https://www.themarker.com/", "selector": "h3 a"},
+    {"name": "Calcalist", "url": "https://www.calcalist.co.il/home/0,7340,L-8,00.html", "selector": ".teaser a"},
+    {"name": "Maariv", "url": "https://www.maariv.co.il/", "selector": ".news_article a"},
+    {"name": "Mako", "url": "https://www.mako.co.il/", "selector": "h2 a"}
+]
+
+# מילות מפתח לחיפוש
+KEYWORDS = ["McDonalds", "מק'דונלדס", "מקדונלדס", "אלעל", "EL-AL", "אל-על"]
+
 def get_news():
-    url = "https://www.playground.ru/misc/news"
-    
-    req = requests.get(url=url)
-    soup = BeautifulSoup(req.text, "lxml")
-
-    article_cards = soup.find_all("div", class_="post-content")
-
     news_dict = {}
-    for article in article_cards:
-        title_article = article.find("div", class_="post-title").text.strip()
-        url_a = article.find("div", class_="post-title").find("a")
-        url_article = f"{url_a.get('href')}" 
 
-        date_article = article.find('div', class_="post-metadata").find("time").get("datetime")
-        date_iso = datetime.fromisoformat(date_article)
-        date_time = datetime.strftime(date_iso, "%Y-%m-%d %H:%M:%S")
-        article_date_timestamp = time.mktime(datetime.strptime(date_time, "%Y-%m-%d %H:%M:%S").timetuple())
+    for site in NEWS_SITES:
+        try:
+            response = requests.get(site["url"], timeout=10)
+            response.raise_for_status()
+            soup = BeautifulSoup(response.text, "html.parser")
 
-        article_id = url_article.split("/")[-1]
+            articles = soup.select(site["selector"])
+            
+            for article in articles:
+                title = article.get_text(strip=True)
+                url_article = article["href"]
 
-        news_dict[article_id] = {
-            "article_date_timestamp": article_date_timestamp,
-            "title_article": title_article,
-            "url_article": url_article,
-        }
+                # וידוא שהכתובת מלאה
+                if not url_article.startswith("http"):
+                    url_article = site["url"] + url_article
 
-    with open("news_dict.json", "w") as file:
+                article_id = url_article.split("/")[-1]
+                article_date_timestamp = time.time()
+
+                news_dict[article_id] = {
+                    "article_date_timestamp": article_date_timestamp,
+                    "title_article": title,
+                    "url_article": url_article,
+                }
+
+        except Exception as e:
+            print(f"שגיאה בהבאת נתונים מאתר {site['name']}: {e}")
+
+    with open("news_dict.json", "w", encoding="utf-8") as file:
         json.dump(news_dict, file, indent=4, ensure_ascii=False)
 
-
-
 def check_update():
-    with open("news_dict.json") as file:
-       news_dict = json.load(file)       
-
-    url = "https://www.playground.ru/misc/news"
-    
-    req = requests.get(url=url)
-    soup = BeautifulSoup(req.text, "lxml")
-
-    article_cards = soup.find_all("div", class_="post-content")
+    try:
+        with open("news_dict.json", "r", encoding="utf-8") as file:
+            news_dict = json.load(file)
+    except (FileNotFoundError, json.JSONDecodeError):
+        news_dict = {}
 
     fresh_news = {}
-    for article in article_cards:
-        url_a = article.find("div", class_="post-title").find("a")
-        url_article = f"{url_a.get('href')}" 
-        article_id = url_article.split("/")[-1]
 
-        if article_id in news_dict:
-            continue
-        else:
-            title_article = article.find("div", class_="post-title").text.strip()
+    for site in NEWS_SITES:
+        try:
+            response = requests.get(site["url"], timeout=10)
+            response.raise_for_status()
+            soup = BeautifulSoup(response.text, "html.parser")
 
-            date_article = article.find('div', class_="post-metadata").find("time").get("datetime")
-            date_iso = datetime.fromisoformat(date_article)
-            date_time = datetime.strftime(date_iso, "%Y-%m-%d %H:%M:%S")
-            article_date_timestamp = time.mktime(datetime.strptime(date_time, "%Y-%m-%d %H:%M:%S").timetuple())
+            articles = soup.select(site["selector"])
             
-            news_dict[article_id] = {
-            "article_date_timestamp": article_date_timestamp,
-            "title_article": title_article,
-            "url_article": url_article,
-            }
+            for article in articles:
+                title = article.get_text(strip=True)
+                url_article = article["href"]
 
-            fresh_news[article_id] = {
-                "article_date_timestamp": article_date_timestamp,
-                "title_article": title_article,
-                "url_article": url_article,
-            }
-    
-    with open("news_dict.json", "w") as file:
+                # וידוא שהכתובת מלאה
+                if not url_article.startswith("http"):
+                    url_article = site["url"] + url_article
+
+                article_id = url_article.split("/")[-1]
+
+                # חיפוש לפי מילות מפתח
+                if any(keyword.lower() in title.lower() for keyword in KEYWORDS):
+                    if article_id not in news_dict:
+                        article_date_timestamp = time.time()
+                        
+                        news_dict[article_id] = {
+                            "article_date_timestamp": article_date_timestamp,
+                            "title_article": title,
+                            "url_article": url_article,
+                        }
+
+                        fresh_news[article_id] = {
+                            "article_date_timestamp": article_date_timestamp,
+                            "title_article": title,
+                            "url_article": url_article,
+                        }
+
+        except Exception as e:
+            print(f"שגיאה בהבאת נתונים מאתר {site['name']}: {e}")
+
+    with open("news_dict.json", "w", encoding="utf-8") as file:
         json.dump(news_dict, file, indent=4, ensure_ascii=False)
 
     return fresh_news
-    
 
 def main():
     get_news()
-    #print(check_update())
-    
+
 if __name__ == "__main__":
     main()
-
-        
