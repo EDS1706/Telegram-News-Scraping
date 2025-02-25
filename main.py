@@ -69,6 +69,8 @@ def get_news():
                                 "url_article": url_article,
                             }
                             new_articles[article_id] = news_dict[article_id]
+                            print(news_dict)  # הדפס את הכתבות שנמצאו
+
 
         except requests.RequestException as e:
             print(f"שגיאה בגישה לאתר {base_url}: {e}")
