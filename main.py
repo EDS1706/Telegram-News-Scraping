@@ -3,24 +3,31 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 import time
 import json
+import os
 
 # רשימת אתרי החדשות לבדיקה
-NEWS_SITES = [
-    "https://www.ynet.co.il/home/0,7340,L-8,00.html",
-    "https://www.themarker.com/",
-    "https://www.calcalist.co.il/home/0,7340,L-8,00.html",
-    "https://www.mako.co.il/",
-    "https://www.maariv.co.il/",
-]
+NEWS_SITES = {
+    "https://www.ynet.co.il": "/home/0,7340,L-8,00.html",
+    "https://www.themarker.com": "/",
+    "https://www.calcalist.co.il": "/home/0,7340,L-8,00.html",
+    "https://www.mako.co.il": "/",
+    "https://www.maariv.co.il": "/",
+}
 
 # מילות המפתח למעקב
 KEYWORDS = ["McDonalds", "מק'דונלדס", "מקדונלדס", "אלעל", "EL-AL", "אל-על"]
 
+# וידוא שקובץ ה-JSON קיים
+if not os.path.exists("news_dict.json"):
+    with open("news_dict.json", "w") as file:
+        json.dump({}, file)
+
 def get_news():
     news_dict = {}
-    
-    for site in NEWS_SITES:
-        req = requests.get(site)
+
+    for base_url, path in NEWS_SITES.items():
+        url = base_url + path
+        req = requests.get(url)
         soup = BeautifulSoup(req.text, "lxml")
 
         # חיפוש כותרות לפי תגי HTML נפוצים באתרי חדשות
@@ -31,6 +38,10 @@ def get_news():
             url_article = article.find("a")
             if url_article:
                 url_article = url_article.get("href")
+                
+                # השלמת קישור אם הוא יחסי
+                if url_article.startswith("/"):
+                    url_article = base_url + url_article
 
                 if any(keyword in title_article for keyword in KEYWORDS):
                     article_id = url_article.split("/")[-1]
@@ -53,9 +64,10 @@ def check_update():
         news_dict = {}
 
     fresh_news = {}
-    
-    for site in NEWS_SITES:
-        req = requests.get(site)
+
+    for base_url, path in NEWS_SITES.items():
+        url = base_url + path
+        req = requests.get(url)
         soup = BeautifulSoup(req.text, "lxml")
 
         articles = soup.find_all("h2")
@@ -66,12 +78,16 @@ def check_update():
             if url_article:
                 url_article = url_article.get("href")
 
+                # השלמת קישור אם הוא יחסי
+                if url_article.startswith("/"):
+                    url_article = base_url + url_article
+
                 if any(keyword in title_article for keyword in KEYWORDS):
                     article_id = url_article.split("/")[-1]
 
                     if article_id not in news_dict:
                         article_date_timestamp = time.time()
-                        
+
                         news_dict[article_id] = {
                             "article_date_timestamp": article_date_timestamp,
                             "title_article": title_article,
