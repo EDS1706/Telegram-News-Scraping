@@ -15,7 +15,8 @@ NEWS_SITES = {
 }
 
 # מילות המפתח למעקב
-KEYWORDS = ["McDonalds", "מק'דונלדס", "מקדונלדס", "אלעל", "EL-AL", "אל-על"]
+KEYWORDS = ["McDonalds", "מק'דונלדס", "מקדונלדס", "אלעל", "EL-AL", "אל-על", "ישראל", "ביידן"]
+
 
 # וידוא שקובץ ה-JSON קיים
 if not os.path.exists("news_dict.json"):
