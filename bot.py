@@ -12,8 +12,11 @@ dp = Dispatcher(bot)
 
 # פונקציה לאיפוס הwebhook בהתחלה
 async def on_startup(dp):
+    # נקה באופן מוחלט כל מצב קודם
     await bot.delete_webhook(drop_pending_updates=True)
-    print("בוט הופעל והwebhook אופס")
+    # הגדרת פרמטרים מיוחדים לחיבור חדש
+    await bot.get_updates(offset=-1, timeout=1)
+    print("בוט הופעל ו-webhook אופס בהצלחה")
 
 # פקודת /start
 @dp.message_handler(commands="start")
@@ -99,4 +102,5 @@ async def scheduled_news_check():
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     loop.create_task(scheduled_news_check())
-    executor.start_polling(dp, on_startup=on_startup, skip_updates=True)  # הוספתי פרמטרים
+    # הוספת timeout ו-relax למניעת קונפליקטים
+    executor.start_polling(dp, on_startup=on_startup, skip_updates=True, timeout=60, relax=0.5)
