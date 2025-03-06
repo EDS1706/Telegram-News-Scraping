@@ -10,13 +10,18 @@ from main import check_update
 bot = Bot(TOKEN, parse_mode=types.ParseMode.HTML)
 dp = Dispatcher(bot)
 
+# פונקציה לאיפוס הwebhook בהתחלה
+async def on_startup(dp):
+    await bot.delete_webhook(drop_pending_updates=True)
+    print("בוט הופעל והwebhook אופס")
+
 # פקודת /start
 @dp.message_handler(commands="start")
 async def start(message: types.Message):
     start_buttons = ["בדוק חדשות", "חמש החדשות האחרונות"]
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
     keyboard.add(*start_buttons)
-    await message.answer("שלום! כאן סוכן החדשות שלך 📰", reply_markup=keyboard)
+    await message.answer("שלום! כאן בוט החדשות שלך 📰", reply_markup=keyboard)
 
 # כל החדשות מה-JSON
 @dp.message_handler(Text(equals="בדוק חדשות"))
@@ -94,4 +99,4 @@ async def scheduled_news_check():
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     loop.create_task(scheduled_news_check())
-    executor.start_polling(dp)
+    executor.start_polling(dp, on_startup=on_startup, skip_updates=True)  # הוספתי פרמטרים
